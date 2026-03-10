@@ -1,0 +1,36 @@
+{
+  "name": "effector-audit",
+  "version": "0.1.0",
+  "description": "Security audit and cryptographic signing for AI agent capabilities",
+  "main": "src/index.js",
+  "bin": {
+    "effector-audit": "bin/effector-audit.js"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/",
+    "lint": "node --check src/*.js"
+  },
+  "keywords": [
+    "effector",
+    "security",
+    "audit",
+    "signing",
+    "sigstore",
+    "ai-agent",
+    "supply-chain"
+  ],
+  "author": "effectorHQ Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/effectorHQ/effector-audit.git"
+  },
+  "homepage": "https://github.com/effectorHQ/effector-audit",
+  "bugs": {
+    "url": "https://github.com/effectorHQ/effector-audit/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
