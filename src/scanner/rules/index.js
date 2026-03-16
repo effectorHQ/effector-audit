@@ -3,6 +3,53 @@
  * Each rule is a function that checks file content and returns findings.
  */
 
+import { parseEffectorToml } from '@effectorhq/core/toml';
+
+// Context types that imply network access
+const NETWORK_CONTEXT_TYPES = new Set([
+  'GitHubCredentials', 'APICredentials', 'SlackCredentials',
+  'AWSCredentials', 'GenericAPIKey',
+]);
+
+// Context types that imply filesystem access
+const FILESYSTEM_CONTEXT_TYPES = new Set([
+  'Repository',
+]);
+
+/** Check permission-interface consistency in effector.toml files. */
+const permissionInterfaceConsistency = {
+  id: 'permission-interface-mismatch',
+  check(content, lines, file) {
+    if (!file.endsWith('effector.toml')) return [];
+
+    const findings = [];
+    const toml = parseEffectorToml(content);
+    const context = toml.interface?.context || [];
+    const perms = toml.permissions;
+
+    for (const ctxType of context) {
+      if (NETWORK_CONTEXT_TYPES.has(ctxType) && !perms.network) {
+        findings.push({
+          severity: 'medium',
+          rule: 'permission-interface-mismatch',
+          message: `Context type "${ctxType}" implies network access, but network = false in permissions`,
+          file,
+        });
+      }
+      if (FILESYSTEM_CONTEXT_TYPES.has(ctxType) && !perms.filesystem?.length) {
+        findings.push({
+          severity: 'low',
+          rule: 'permission-interface-mismatch',
+          message: `Context type "${ctxType}" implies filesystem access, but no filesystem paths declared in permissions`,
+          file,
+        });
+      }
+    }
+
+    return findings;
+  },
+};
+
 /** Detect prompt injection patterns in SKILL.md and prompt files. */
 const promptInjection = {
   id: 'prompt-injection',
@@ -137,4 +184,4 @@ const obfuscation = {
   },
 };
 
-export const rules = [promptInjection, dataExfiltration, permissionCreep, obfuscation];
+export const rules = [promptInjection, dataExfiltration, permissionCreep, obfuscation, permissionInterfaceConsistency];
