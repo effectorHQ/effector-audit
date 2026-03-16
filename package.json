@@ -1,7 +1,7 @@
 {
   "name": "effector-audit",
   "version": "0.1.0",
-  "description": "Security audit and cryptographic signing for AI agent capabilities",
+  "description": "Security scanner for AI agent capability manifests — detects prompt injection, permission creep, and data exfiltration",
   "main": "src/index.js",
   "bin": {
     "effector-audit": "bin/effector-audit.js"
@@ -12,12 +12,12 @@
     "lint": "node --check src/*.js"
   },
   "keywords": [
-    "effector",
+    "ai-agent",
     "security",
     "audit",
-    "signing",
-    "sigstore",
-    "ai-agent",
+    "permissions",
+    "effector",
+    "prompt-injection",
     "supply-chain"
   ],
   "author": "effectorHQ Contributors",
@@ -33,6 +33,9 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "files": [
+    "src/"
+  ],
   "dependencies": {
     "@effectorhq/core": "file:../effector-core"
   }
