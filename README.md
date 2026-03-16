@@ -1,6 +1,7 @@
 # effector-audit
 
 [![npm version](https://img.shields.io/badge/npm-effector--audit-E03E3E.svg)](https://www.npmjs.com/package/effector-audit)
+[![CI](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml/badge.svg)](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)
 
@@ -17,6 +18,21 @@ The root cause wasn't a bug. It was an architectural absence: **no code signing,
 This is npm circa 2018 — before `npm audit`, before lockfiles, before Sigstore. Except the stakes are higher, because AI agent capabilities don't just run code. They control what an AI does in the world: reading your files, calling APIs, sending messages, modifying databases.
 
 `effector-audit` closes this gap.
+
+## Install
+
+```bash
+npm install effector-audit
+```
+
+You can also use the CLI directly without installing globally:
+
+```bash
+npx effector-audit ./my-skill
+npx effector-audit ./my-skill --format json
+```
+
+See the published package on npm: **https://www.npmjs.com/package/effector-audit**
 
 ## What It Does
 
