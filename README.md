@@ -1,6 +1,6 @@
 # effector-audit
 
-[![npm version](https://img.shields.io/badge/npm-effector--audit-E03E3E.svg)](https://www.npmjs.com/package/effector-audit)
+[![npm version](https://img.shields.io/badge/npm-effector--audit-E03E3E.svg)](https://www.npmjs.com/package/@effectorhq/audit)
 [![CI](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml/badge.svg)](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)
@@ -41,7 +41,7 @@ See the published package on npm: **https://www.npmjs.com/package/@effectorhq/au
 Scans Effector packages for known vulnerability patterns (no execution sandbox):
 
 ```bash
-npx effector-audit ./my-skill/
+npx @effectorhq/audit ./my-skill/
 
   ✗ CRITICAL  prompt-injection    Line 23: System prompt override detected
   ✗ HIGH      data-exfiltration   Line 47: Unscoped network access to external domain
@@ -60,7 +60,7 @@ npx effector-audit ./my-skill/
 Cross-references declared permissions against actual capability behavior:
 
 ```bash
-npx effector-audit permissions ./my-skill/
+npx @effectorhq/audit permissions ./my-skill/
 
   Declared permissions:
     ✓ network:external
