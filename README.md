@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)
 
-**Security audit and cryptographic signing for AI agent capabilities.**
+**Security scanner for Effector packages (static-only).**
 
 ---
 
@@ -22,67 +22,40 @@ This is npm circa 2018 — before `npm audit`, before lockfiles, before Sigstore
 ## Install
 
 ```bash
-npm install effector-audit
+npm install @effectorhq/audit
 ```
 
 You can also use the CLI directly without installing globally:
 
 ```bash
-npx effector-audit ./my-skill
-npx effector-audit ./my-skill --format json
+npx @effectorhq/audit ./my-skill
+npx @effectorhq/audit ./my-skill --format json
 ```
 
-See the published package on npm: **https://www.npmjs.com/package/effector-audit**
+See the published package on npm: **https://www.npmjs.com/package/@effectorhq/audit**
 
 ## What It Does
 
-### 1. Static Analysis
+### 1. Static Analysis (implemented)
 
-Scans Effector packages for known vulnerability patterns:
+Scans Effector packages for known vulnerability patterns (no execution sandbox):
 
 ```bash
-npx effector-audit scan ./my-skill/
+npx effector-audit ./my-skill/
 
   ✗ CRITICAL  prompt-injection    Line 23: System prompt override detected
   ✗ HIGH      data-exfiltration   Line 47: Unscoped network access to external domain
-  ⚠ MEDIUM    permission-creep    Requests filesystem write but description says "read-only"
-  ✓ PASS      dependency-check    All dependencies are signed and verified
-  ✓ PASS      type-safety         Interface types match declared contract
+  ⚠ MEDIUM    permission-creep    Network/filesystem/subprocess usage without declared permissions
 
   2 critical, 1 warning — audit failed
 ```
 
 **Detection patterns include:**
 - Prompt injection and jailbreak attempts in SKILL.md content
-- Permission declarations that exceed described functionality
 - Data exfiltration vectors (unscoped network, filesystem access)
-- Dependency vulnerabilities (transitive risk analysis)
-- Type contract violations (declared interface vs. actual behavior)
 - Obfuscated instructions (base64, unicode tricks, invisible text)
 
-### 2. Cryptographic Signing
-
-Sign Effector packages with [Sigstore](https://www.sigstore.dev/) — the same infrastructure securing npm, PyPI, and Homebrew:
-
-```bash
-# Sign with your identity (keyless, tied to OIDC identity)
-npx effector-audit sign ./my-skill/
-
-  ✓ Signed by: developer@example.com
-  ✓ Transparency log: rekor.sigstore.dev/e/12345
-  ✓ Signature: effector.sig (detached, verifiable)
-
-# Verify before installing
-npx effector-audit verify ./downloaded-skill/
-
-  ✓ Signed by: developer@example.com (verified via Fulcio)
-  ✓ Signature valid, not tampered
-  ✓ Timestamp: 2026-03-10T14:32:00Z (Rekor logged)
-```
-
-No PGP keys to manage. No key servers. Identity-based signing through existing GitHub/Google/Microsoft accounts, backed by certificate transparency logs.
-
-### 3. Permission Verification
+### 2. Permission Drift Check (implemented)
 
 Cross-references declared permissions against actual capability behavior:
 
@@ -90,69 +63,30 @@ Cross-references declared permissions against actual capability behavior:
 npx effector-audit permissions ./my-skill/
 
   Declared permissions:
-    ✓ read:repository
-    ✓ network:api.github.com
+    ✓ network:external
 
   Detected behavior:
-    ✓ read:repository        (Line 12: uses gh api repos/...)
-    ✗ network:slack.com      (Line 34: curl to Slack webhook — NOT DECLARED)
-    ✗ write:filesystem       (Line 45: writes to /tmp — NOT DECLARED)
+    ✗ network:evil.com       (fetch/curl — NOT DECLARED)
+    ✗ write:filesystem       (fs.writeFileSync — NOT DECLARED)
 
   Permission drift detected: 2 undeclared capabilities
 ```
 
-### 4. Supply Chain Verification
+## What Is Not Implemented Yet
 
-Verify the entire dependency tree:
+The README previously described signing/supply-chain verification. Those are **roadmap** items and are not in the current codebase:
 
-```bash
-npx effector-audit supply-chain ./my-workflow/
-
-  Dependencies:
-    ├── code-review@1.2.0      ✓ signed (effectorHQ)
-    ├── security-scan@2.0.0    ✓ signed (snyk-community)
-    ├── slack-notify@0.5.0     ⚠ unsigned (community)
-    └── custom-formatter@0.1.0 ✗ unverified (no provenance)
-
-  Trust chain: 2/4 verified, 1 unsigned, 1 unverified
-  Recommendation: Pin custom-formatter to exact version, request signing
-```
-
-## Why This Matters Now
-
-The attack surface for AI agent capabilities is unique and growing:
-
-| Attack vector | Traditional software | AI agent capabilities |
-|---------------|---------------------|----------------------|
-| Code injection | Runs in sandbox | **Controls AI behavior — acts with user's permissions** |
-| Dependency confusion | Installs wrong package | **Teaches AI wrong skills — behavioral corruption** |
-| Permission escalation | OS-level containment | **No standard permission model — skills do whatever they want** |
-| Supply chain | Lock files, SBOMs | **No signing, no provenance, no verification** |
-
-The February 2026 ClawHub crisis was the "left-pad moment" for AI capabilities — except instead of broken builds, the consequence was compromised agents exfiltrating data and installing malware.
-
-Research supports this urgency:
-- Vercel's analysis found that **reducing to the right tools matters more than adding more tools** — bad tools create infinite loops and cascading failures ([Vercel Security Boundaries, 2026](https://vercel.com/blog/security-boundaries-in-agentic-architectures))
-- The ACNBP framework ([arXiv:2506.13590](https://arxiv.org/abs/2506.13590)) proposed capability attestation for multi-agent systems — `effector-audit` provides the concrete implementation
-- Defense-in-depth architectures now require **app-level sandboxing + secret injection** as standard practice ([NVIDIA Sandboxing Guidance, 2026](https://developer.nvidia.com/blog/practical-security-guidance-for-sandboxing-agentic-workflows-and-managing-execution-risk/))
+- Cryptographic signing / verification
+- Supply-chain verification / SBOM generation
+- GitHub Action `effector-audit-action`
 
 ## Integration
-
-### GitHub Action
-
-```yaml
-- uses: effectorHQ/effector-audit-action@v1
-  with:
-    path: ./skills/
-    fail-on: critical
-    verify-signatures: true
-```
 
 ### CI/CD Pipeline
 
 ```bash
 # In your publish pipeline
-effector-audit scan . && effector-audit sign . && npm publish
+effector-audit . && effector-audit permissions . && npm publish
 ```
 
 ### Registry Gate
@@ -166,28 +100,19 @@ effector-audit
 ├── scanner/          # Static analysis engine
 │   ├── rules/        # Detection rules (prompt injection, exfiltration, etc.)
 │   ├── analyzer.js   # AST + content analysis for SKILL.md and code
-│   └── reporter.js   # Output formatting (terminal, JSON, SARIF)
-├── signer/           # Sigstore integration
-│   ├── sign.js       # Keyless signing via Fulcio
-│   ├── verify.js     # Signature verification via Rekor
-│   └── bundle.js     # Signature bundling in effector.toml
+│   └── reporter.js   # Output formatting (terminal, JSON)
 ├── permissions/       # Permission analysis
-│   ├── declared.js   # Parse permission declarations from manifest
-│   ├── detected.js   # Detect actual behavior from content analysis
 │   └── diff.js       # Permission drift detection
-└── supply-chain/     # Dependency tree verification
-    ├── resolve.js    # Dependency resolution
-    ├── verify.js     # Transitive trust verification
-    └── sbom.js       # Software Bill of Materials generation
 ```
 
 ## Roadmap
 
-- [ ] **v0.1** — Core scanner with prompt injection + exfiltration detection, CLI output
-- [ ] **v0.2** — Sigstore signing + verification, GitHub Action
-- [ ] **v0.3** — Permission analysis, drift detection
-- [ ] **v0.4** — Supply chain verification, SBOM generation
-- [ ] **v0.5** — Integration with `effector-types` (type contract verification)
+- [x] **v0.1** — Core scanner (prompt injection + exfiltration + basic permission creep signals)
+- [x] **v0.1** — Permission drift check (`effector.toml` vs detected behavior)
+- [ ] **v0.2** — Signing + verification
+- [ ] **v0.3** — Supply chain verification / SBOM
+- [ ] **v0.4** — GitHub Action
+- [ ] **v0.5** — Type contract verification (types catalog)
 - [ ] **v1.0** — Production-ready, registry-gate capable
 
 ## Contributing

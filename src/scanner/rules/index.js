@@ -4,6 +4,8 @@
  */
 
 import { parseEffectorToml } from '@effectorhq/core/toml';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 // Context types that imply network access
 const NETWORK_CONTEXT_TYPES = new Set([
@@ -116,28 +118,79 @@ const permissionCreep = {
   check(content, lines, file) {
     const findings = [];
 
-    // Check for filesystem writes in skills that don't declare write permissions
-    const hasWriteDeclaration = /permissions.*write:filesystem|access.*write/i.test(content);
-    const hasWriteOps = /writeFileSync|fs\.write|> \/|>> \/|tee\s+\//i.test(content);
+    if (file.endsWith('effector.toml')) return [];
 
-    if (hasWriteOps && !hasWriteDeclaration) {
+    // Unit tests (and some repos) may pass TOML content directly without a real file tree.
+    // If this looks like an effector manifest section, treat this file as the declaration source.
+    let declared;
+    if (file.endsWith('.toml') && /\[effector\.permissions\]/.test(content)) {
+      try {
+        declared = normalizeDeclaredPermissions(parseEffectorToml(content)?.permissions);
+      } catch {
+        declared = new Set();
+      }
+    } else {
+      declared = getDeclaredCapabilitiesForFile(file);
+    }
+    const hasManifest = declared.size > 0;
+
+    const hasReadOps = /readFileSync|fs\.read|cat\s+\//i.test(content);
+    const hasWriteOps = /writeFileSync|fs\.write|>\s+\/|>>\s+\/|tee\s+\//i.test(content);
+    const hasNetworkOps = /curl\s+|wget\s+|fetch\(|axios|http\.get|http\.post|request\(/i.test(content);
+    const hasSubprocessOps = /exec\(|execSync|spawn|child_process/i.test(content);
+    const hasEnvReadOps = /process\.env|getenv|\$\{?\w+\}?/i.test(content);
+
+    if (hasReadOps && (!hasManifest || !declared.has('read:filesystem'))) {
       findings.push({
         severity: 'medium',
         rule: 'permission-creep',
-        message: 'Filesystem write operations detected but no write permission declared',
+        message: hasManifest
+          ? 'Filesystem read operations detected but filesystem permission not declared in effector.toml'
+          : 'Filesystem read operations detected but no effector.toml found to declare permissions',
         file,
       });
     }
 
-    // Check for network access in skills that don't declare it
-    const hasNetworkDeclaration = /permissions.*network|requires.*api|domains/i.test(content);
-    const hasNetworkOps = /curl\s+|wget\s+|fetch\(|http\.get|axios\.|request\(/i.test(content);
-
-    if (hasNetworkOps && !hasNetworkDeclaration) {
+    if (hasWriteOps && (!hasManifest || !declared.has('write:filesystem'))) {
       findings.push({
         severity: 'medium',
         rule: 'permission-creep',
-        message: 'Network access detected but no network permission declared',
+        message: hasManifest
+          ? 'Filesystem write operations detected but filesystem permission not declared in effector.toml'
+          : 'Filesystem write operations detected but no effector.toml found to declare permissions',
+        file,
+      });
+    }
+
+    if (hasNetworkOps && (!hasManifest || !declared.has('network:external'))) {
+      findings.push({
+        severity: 'medium',
+        rule: 'permission-creep',
+        message: hasManifest
+          ? 'Network access detected but network permission not declared in effector.toml'
+          : 'Network access detected but no effector.toml found to declare permissions',
+        file,
+      });
+    }
+
+    if (hasSubprocessOps && (!hasManifest || !declared.has('subprocess:exec'))) {
+      findings.push({
+        severity: 'medium',
+        rule: 'permission-creep',
+        message: hasManifest
+          ? 'Subprocess usage detected but subprocess permission not declared in effector.toml'
+          : 'Subprocess usage detected but no effector.toml found to declare permissions',
+        file,
+      });
+    }
+
+    if (hasEnvReadOps && (!hasManifest || !declared.has('env:read'))) {
+      findings.push({
+        severity: 'low',
+        rule: 'permission-creep',
+        message: hasManifest
+          ? 'Environment variable access detected but env-read not declared in effector.toml'
+          : 'Environment variable access detected but no effector.toml found to declare permissions',
         file,
       });
     }
@@ -145,6 +198,62 @@ const permissionCreep = {
     return findings;
   },
 };
+
+const manifestCache = new Map();
+
+function getDeclaredCapabilitiesForFile(filePath) {
+  const root = findNearestPackageRoot(filePath);
+  if (!root) return new Set();
+
+  const cached = manifestCache.get(root);
+  if (cached) return cached;
+
+  const manifestPath = join(root, 'effector.toml');
+  try {
+    const def = parseEffectorToml(readFileSync(manifestPath, 'utf-8'));
+    const declared = normalizeDeclaredPermissions(def?.permissions);
+    manifestCache.set(root, declared);
+    return declared;
+  } catch {
+    const empty = new Set();
+    manifestCache.set(root, empty);
+    return empty;
+  }
+}
+
+function findNearestPackageRoot(filePath) {
+  let dir = dirname(filePath);
+
+  for (let i = 0; i < 50; i++) {
+    const manifestPath = join(dir, 'effector.toml');
+    if (existsSync(manifestPath)) return dir;
+
+    const parent = dirname(dir);
+    if (parent === dir) return null;
+    dir = parent;
+  }
+
+  return null;
+}
+
+function normalizeDeclaredPermissions(permissions) {
+  const declared = new Set();
+  if (!permissions) return declared;
+
+  if (permissions.network) declared.add('network:external');
+  if (permissions.subprocess) declared.add('subprocess:exec');
+
+  if (Array.isArray(permissions.envRead) && permissions.envRead.length > 0) declared.add('env:read');
+  if (Array.isArray(permissions.envWrite) && permissions.envWrite.length > 0) declared.add('env:write');
+
+  // @effectorhq/core/toml currently doesn't encode read vs write separately; treat as both.
+  if (Array.isArray(permissions.filesystem) && permissions.filesystem.length > 0) {
+    declared.add('read:filesystem');
+    declared.add('write:filesystem');
+  }
+
+  return declared;
+}
 
 /** Detect obfuscated content that may hide malicious instructions. */
 const obfuscation = {

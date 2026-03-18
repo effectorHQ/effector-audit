@@ -5,6 +5,7 @@
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseEffectorToml } from '@effectorhq/core/toml';
 
 /**
  * Analyze permission drift between declared and detected capabilities.
@@ -41,18 +42,30 @@ function parseDeclaredPermissions(targetPath) {
   if (!existsSync(manifestPath)) return [];
 
   const content = readFileSync(manifestPath, 'utf-8');
-  const permissions = [];
+  const def = parseEffectorToml(content);
+  return normalizeDeclaredPermissions(def?.permissions);
+}
 
-  // Simple TOML permission extraction
-  const permMatch = content.match(/permissions\s*=\s*\[([^\]]*)\]/);
-  if (permMatch) {
-    const perms = permMatch[1].match(/"([^"]+)"/g);
-    if (perms) {
-      permissions.push(...perms.map((p) => p.replace(/"/g, '')));
-    }
+function normalizeDeclaredPermissions(permissions) {
+  if (!permissions) return [];
+
+  const declared = new Set();
+
+  // effector-spec defines an object model; @effectorhq/core/toml currently parses:
+  // { network:boolean, subprocess:boolean, envRead:string[], envWrite:string[], filesystem:string[] }
+  // filesystem is an array but does not encode read vs write; we treat it as allowing both.
+  if (permissions.network) declared.add('network:external');
+  if (permissions.subprocess) declared.add('subprocess:exec');
+
+  if (Array.isArray(permissions.envRead) && permissions.envRead.length > 0) declared.add('env:read');
+  if (Array.isArray(permissions.envWrite) && permissions.envWrite.length > 0) declared.add('env:write');
+
+  if (Array.isArray(permissions.filesystem) && permissions.filesystem.length > 0) {
+    declared.add('read:filesystem');
+    declared.add('write:filesystem');
   }
 
-  return permissions;
+  return [...declared];
 }
 
 function detectActualBehavior(targetPath) {

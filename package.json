@@ -1,6 +1,6 @@
 {
-  "name": "effector-audit",
-  "version": "0.1.0",
+  "name": "@effectorhq/audit",
+  "version": "1.0.0",
   "description": "Security scanner for AI agent capability manifests — detects prompt injection, permission creep, and data exfiltration",
   "main": "src/index.js",
   "bin": {
@@ -9,6 +9,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.js",
+    "prepublishOnly": "node --test tests/*.test.js",
     "lint": "node --check src/*.js"
   },
   "keywords": [
@@ -34,9 +35,12 @@
     "node": ">=18.0.0"
   },
   "files": [
-    "src/"
+    "src/",
+    "bin/",
+    "README.md",
+    "LICENSE"
   ],
   "dependencies": {
-    "@effectorhq/core": "file:../effector-core"
+    "@effectorhq/core": "^1.0.0"
   }
 }
