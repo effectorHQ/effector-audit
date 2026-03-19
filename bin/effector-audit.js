@@ -5,7 +5,7 @@
  *
  * Usage:
  *   effector-audit scan <path>          Static analysis for vulnerabilities
- *   effector-audit sign <path>          Sign an Effector package (Sigstore)
+ *   effector-audit sign <path>          Sign an Effector package (roadmap; not yet implemented)
  *   effector-audit verify <path>        Verify signature and provenance
  *   effector-audit permissions <path>   Analyze permission drift
  *   effector-audit supply-chain <path>  Verify dependency trust chain
@@ -38,7 +38,7 @@ effector-audit — Security audit and signing for AI agent capabilities
 
 Commands:
   scan <path>           Static analysis for vulnerabilities
-  sign <path>           Sign an Effector package (Sigstore keyless)
+  sign <path>           Sign an Effector package (roadmap; coming in v0.2)
   verify <path>         Verify signature and provenance
   permissions <path>    Detect permission drift
   supply-chain <path>   Verify dependency trust chain
