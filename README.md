@@ -130,4 +130,4 @@ Security tooling needs adversarial thinking. We especially need:
 
 ---
 
-<sub>Part of the <a href="https://github.com/effectorHQ">effectorHQ</a> studio. We build hands for AI.</sub>
+<sub>Part of the <a href="https://github.com/effectorHQ">effectorHQ</a> studio. We build hands for AI that moves first.</sub>
