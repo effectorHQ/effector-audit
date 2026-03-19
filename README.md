@@ -28,8 +28,8 @@ npm install @effectorhq/audit
 You can also use the CLI directly without installing globally:
 
 ```bash
-npx @effectorhq/audit ./my-skill
-npx @effectorhq/audit ./my-skill --format json
+npx @effectorhq/audit scan ./my-skill
+npx @effectorhq/audit scan ./my-skill --format json
 ```
 
 See the published package on npm: **https://www.npmjs.com/package/@effectorhq/audit**
@@ -41,7 +41,7 @@ See the published package on npm: **https://www.npmjs.com/package/@effectorhq/au
 Scans Effector packages for known vulnerability patterns (no execution sandbox):
 
 ```bash
-npx @effectorhq/audit ./my-skill/
+npx @effectorhq/audit scan ./my-skill/
 
   ✗ CRITICAL  prompt-injection    Line 23: System prompt override detected
   ✗ HIGH      data-exfiltration   Line 47: Unscoped network access to external domain
@@ -86,7 +86,7 @@ The README previously described signing/supply-chain verification. Those are **r
 
 ```bash
 # In your publish pipeline
-effector-audit . && effector-audit permissions . && npm publish
+npx @effectorhq/audit scan . && npx @effectorhq/audit permissions . && npm publish
 ```
 
 ### Registry Gate
