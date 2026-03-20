@@ -1,6 +1,6 @@
 # effector-audit
 
-[![npm version](https://img.shields.io/badge/npm-effector--audit-E03E3E.svg)](https://www.npmjs.com/package/@effectorhq/audit)
+[![npm](https://img.shields.io/npm/v/@effectorhq/audit?color=E03E3E&logo=npm&logoColor=white)](https://www.npmjs.com/package/@effectorhq/audit)
 [![CI](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml/badge.svg)](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)

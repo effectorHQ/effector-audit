@@ -1,1 +1,5 @@
-node_modules/\ndist/\n.DS_Store\n*.log\ncoverage/\n
+node_modules/
+dist/
+.DS_Store
+*.log
+coverage/
