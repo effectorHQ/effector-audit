@@ -2,7 +2,7 @@
 
 [![npm](https://img.shields.io/npm/v/@effectorhq/audit?color=E03E3E&logo=npm&logoColor=white)](https://www.npmjs.com/package/@effectorhq/audit)
 [![CI](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml/badge.svg)](https://github.com/effectorHQ/effector-audit/actions/workflows/test.yml)
-[![License: Apache 2.0](https://img.shields.io/badge/license-Apache-2.0-blue.svg)](LICENSE)
+
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#)
 
 **Security scanner for Effector packages (static-only).**
@@ -126,9 +126,7 @@ Security tooling needs adversarial thinking. We especially need:
 
 ## License
 
-[Apache-2.0](./LICENSE)
-
-This project is currently licensed under the Apache 2.0 License 。
+This project is currently licensed under the [Apache License, Version 2.0](LICENSE.md) 。
 ---
 
 <sub>Part of the <a href="https://github.com/effectorHQ">effectorHQ</a> studio. We build hands for AI that moves first.</sub>
