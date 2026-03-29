@@ -1,3 +1,10 @@
+> **📦 Consolidated.** This package is now part of [`effectorHQ/effector`](https://github.com/OpenClawHQ/effectorhq) → `packages/audit/`.
+> All active development continues in the monorepo. This repository remains available for reference.
+>
+> Audit is now integrated into `effector check .` via the unified CLI.
+
+---
+
 # effector-audit
 
 [![npm](https://img.shields.io/npm/v/@effectorhq/audit?color=E03E3E&logo=npm&logoColor=white)](https://www.npmjs.com/package/@effectorhq/audit)
